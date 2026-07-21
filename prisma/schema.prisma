@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String
+  password  String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  courses   Course[]
+  progress  Progress[]
+}
+
+model Course {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  category    String     // e.g., "Usuarios", "Permisos", "Firewall", etc.
+  level       String     // "Principiante", "Intermedio", "Avanzado"
+  content     String     // Contenido en markdown
+  lessons     Lesson[]
+  users       User[]
+  progress    Progress[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Lesson {
+  id        String    @id @default(cuid())
+  courseId  String
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title     String
+  content   String    // Contenido en markdown
+  order     Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Progress {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress  Int       @default(0) // 0-100
+  completed Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([userId, courseId])
+}
